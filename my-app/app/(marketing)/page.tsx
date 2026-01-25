@@ -13,19 +13,13 @@ import {
   Menu,
 } from "lucide-react";
 
-// --- SSG CONFIGURATION ---
-// This forces the page to be built as static HTML.
-// It will load instantly (0ms server wait time).
-
 export const dynamic = "force-static";
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-black text-zinc-300 font-sans selection:bg-blue-600 selection:text-white">
-      {/* --- NAVBAR --- */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-black/50 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          {/* Logo */}
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-blue-500/20">
               S
@@ -35,7 +29,6 @@ export default function LandingPage() {
             </span>
           </div>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8 text-sm font-medium">
             <a
               href="#features"
@@ -57,7 +50,6 @@ export default function LandingPage() {
             </a>
           </div>
 
-          {/* CTA Button */}
           <div className="flex items-center gap-4">
             <Link
               href="/dashboard"
@@ -65,7 +57,6 @@ export default function LandingPage() {
             >
               Get Started <ArrowRight className="w-4 h-4" />
             </Link>
-            {/* Mobile Menu Icon (Visual only) */}
             <button className="md:hidden text-white">
               <Menu className="w-6 h-6" />
             </button>
@@ -73,9 +64,7 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* --- HERO SECTION --- */}
       <main className="pt-32 pb-24 relative overflow-hidden">
-        {/* Background Glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[500px] bg-blue-600/20 blur-[120px] rounded-full pointer-events-none" />
 
         <div className="max-w-6xl mx-auto px-6 text-center relative z-10">
@@ -88,7 +77,6 @@ export default function LandingPage() {
             v2.0: Now with WhatsApp Channels
           </div>
 
-          {/* Main Title */}
           <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-white mb-8 max-w-5xl mx-auto leading-[1.1]">
             Write once. <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500">
@@ -96,13 +84,11 @@ export default function LandingPage() {
             </span>
           </h1>
 
-          {/* Subtitle */}
           <p className="text-lg md:text-xl text-zinc-400 mb-10 max-w-2xl mx-auto leading-relaxed">
             The minimal, static-first scheduling tool. Manage LinkedIn, X, and
             WhatsApp from a single, blazing fast dashboard.
           </p>
 
-          {/* Hero Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
             <Link
               href="/dashboard"
@@ -118,7 +104,6 @@ export default function LandingPage() {
             </a>
           </div>
 
-          {/* Social Proof Logos */}
           <div className="border-t border-white/5 pt-10">
             <p className="text-xs text-zinc-500 font-semibold uppercase tracking-widest mb-8">
               Trusted integration with
@@ -141,7 +126,6 @@ export default function LandingPage() {
         </div>
       </main>
 
-      {/* --- FEATURES GRID --- */}
       <section id="features" className="bg-black py-24 border-t border-white/5">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center max-w-2xl mx-auto mb-16">
@@ -189,7 +173,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* --- HOW IT WORKS (Timeline) --- */}
       <section
         id="how-it-works"
         className="bg-zinc-950 py-24 border-t border-white/5"
@@ -205,10 +188,8 @@ export default function LandingPage() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 relative">
-            {/* Connecting Line (Desktop) */}
             <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-0.5 bg-gradient-to-r from-zinc-800 via-blue-900 to-zinc-800" />
 
-            {/* Step 1 */}
             <div className="relative p-6 bg-black border border-white/10 rounded-2xl hover:border-blue-500/50 transition duration-300">
               <div className="w-12 h-12 bg-zinc-900 rounded-xl border border-white/10 flex items-center justify-center text-white font-bold text-xl mb-6 relative z-10 shadow-lg shadow-black">
                 1
@@ -220,7 +201,6 @@ export default function LandingPage() {
               </p>
             </div>
 
-            {/* Step 2 */}
             <div className="relative p-6 bg-black border border-white/10 rounded-2xl hover:border-blue-500/50 transition duration-300">
               <div className="w-12 h-12 bg-zinc-900 rounded-xl border border-white/10 flex items-center justify-center text-white font-bold text-xl mb-6 relative z-10 shadow-lg shadow-black">
                 2
@@ -232,7 +212,6 @@ export default function LandingPage() {
               </p>
             </div>
 
-            {/* Step 3 */}
             <div className="relative p-6 bg-black border border-white/10 rounded-2xl hover:border-blue-500/50 transition duration-300">
               <div className="w-12 h-12 bg-zinc-900 rounded-xl border border-white/10 flex items-center justify-center text-white font-bold text-xl mb-6 relative z-10 shadow-lg shadow-black">
                 3
@@ -247,7 +226,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* --- PRICING SECTION --- */}
       <section id="pricing" className="bg-black py-24 border-t border-white/5">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
@@ -258,7 +236,6 @@ export default function LandingPage() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto items-start">
-            {/* Free Plan */}
             <div className="p-8 bg-zinc-900/30 rounded-3xl border border-white/5 hover:border-white/10 transition">
               <div className="mb-4">
                 <span className="text-zinc-400 font-medium text-sm uppercase tracking-wider">
@@ -281,7 +258,6 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            {/* Pro Plan (Highlighted) */}
             <div className="p-8 bg-zinc-900 rounded-3xl border border-blue-600/50 relative shadow-2xl shadow-blue-900/10">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
                 MOST POPULAR
@@ -308,7 +284,6 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            {/* Team Plan */}
             <div className="p-8 bg-zinc-900/30 rounded-3xl border border-white/5 hover:border-white/10 transition">
               <div className="mb-4">
                 <span className="text-zinc-400 font-medium text-sm uppercase tracking-wider">
@@ -331,7 +306,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* --- FOOTER --- */}
       <footer className="bg-zinc-950 border-t border-white/10 py-12">
         <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
@@ -365,8 +339,6 @@ export default function LandingPage() {
     </div>
   );
 }
-
-// --- HELPER COMPONENTS ---
 
 function FeatureCard({
   icon,
