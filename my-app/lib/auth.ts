@@ -22,6 +22,10 @@ export const authOptions : NextAuthOptions = {
   ],
    session: {
     strategy: "jwt", // Critical for performance (doesn't hit DB on every page load)
+    maxAge : 30*24*60*60
+  },
+  jwt : {
+    maxAge : 30*24*60*60
   },
   callbacks: {
     // Add the User ID to the session so you can identify them in the frontend

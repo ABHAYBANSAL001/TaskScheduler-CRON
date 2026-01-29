@@ -6,8 +6,6 @@ datasource db {
   provider = "postgresql"
 }
 
-
-
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -17,8 +15,8 @@ model User {
 
   timezone String @default("UTC")
 
-  accounts Account[]
-  sessions Session[]
+  accounts         Account[]
+  sessions         Session[]
   platformAccounts PlatformAccount[]
   tasks            Task[]
 
@@ -45,6 +43,10 @@ model Account {
   @@unique([provider, providerAccountId])
 }
 
+// we are not usign the session table because we use the jwt for now > 
+// The Session model stores active login sessions in the database when using database session strategy.
+// Since you use JWT sessions, it’s not used now—JWT replaces it—but it’s kept for future flexibility or stricter security needs.
+// ignore it for now...
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
@@ -53,7 +55,6 @@ model Session {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
-
 
 model PlatformAccount {
   id       String   @id @default(cuid())
@@ -83,7 +84,6 @@ enum Platform {
   TWITTER
   WHATSAPP
 }
-
 
 model Task {
   id     String @id @default(cuid())

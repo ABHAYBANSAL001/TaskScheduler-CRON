@@ -27,7 +27,6 @@ import { Pool } from 'pg'
 const globalForPrisma = global as unknown as { prisma: PrismaClient }
 
 
-
 // connectiion pooling is connecting a single connection for multiple request we don't need to connect connection again & again.
 const connectionString = process.env.DATABASE_URL!
 
