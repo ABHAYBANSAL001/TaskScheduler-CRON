@@ -88,5 +88,5 @@ export async function GET(req: NextRequest) {
   }
 
   // 5. Success! Back to connections page
-  return redirect("/dashboard/platforms?success=true");
+  return redirect("/dashboard?success=true");
 }
