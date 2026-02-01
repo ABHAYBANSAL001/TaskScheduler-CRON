@@ -6,6 +6,7 @@ import Sidebar from "@/components/dashboard/Sidebar";
 import { redis } from "@/lib/redis";
 // import Sidebar from "../../components/Sidebar";
 
+export const dynamic = "force-dynamic";
 export default async function DashboardLayout({
   children,
 }: {
@@ -17,10 +18,10 @@ export default async function DashboardLayout({
     redirect("/login");
   }
   //
-  const redisKey = `user:${session.user.id}:posts`;
+  const redisKey = `user:${session.user.id}:post`;
   const usageCount = (await redis.get<number>(redisKey)) || 0;
+  console.log("usageCount:layout:", usageCount);
 
-  console.log("redisUsage:", usageCount);
   return (
     <DashboardProvider user={session.user}>
       <div className="min-h-screen bg-black">

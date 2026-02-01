@@ -236,6 +236,7 @@ import {
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
+// import { redis } from "@/lib/redis";
 
 // Add usageCount to props
 export default function Sidebar({
@@ -249,6 +250,12 @@ export default function Sidebar({
   const [isScheduleOpen, setIsScheduleOpen] = useState(true);
 
   // Calculate Percentage (Cap at 100%)
+  // const redisKey = `user:${user.id}:posts`; // Ensure this matches your Server Action key exactly
+
+  // // 2. Debugging Logs (Check your VS Code Terminal)
+  // console.log("🔍 Checking Redis Key:", redisKey);
+  // const val = await redis.get<number>(redisKey);
+
   const limit = 10;
   const percent = Math.min((usageCount / limit) * 100, 100);
   const isLimitReached = usageCount >= limit;
@@ -256,6 +263,7 @@ export default function Sidebar({
   return (
     <aside className="w-60 bg-[#09090b] border-r border-white/5 flex flex-col hidden md:flex h-screen fixed left-0 top-0 z-50">
       {/* --- BRAND --- */}
+
       <div className="h-14 flex items-center px-5 mb-4">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 bg-white rounded-md flex items-center justify-center text-black shadow-sm">

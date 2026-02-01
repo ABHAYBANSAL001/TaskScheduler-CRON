@@ -72,13 +72,16 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { redis } from "@/lib/redis";
 
+export const dynamic = "force-dynamic";
+
 export default async function Dashboard() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
     redirect("/login");
   }
-  const redisKey = `user:${session.user.id}:posts`;
+  // const redisKey = `user:${session.user.id}:post`;
+  const redisKey = `user:cmku0afme0000c8oayci13wfd:post`;
 
   const [
     usageCountRaw,
@@ -118,6 +121,8 @@ export default async function Dashboard() {
   );
   const usageCount = Number(usageCountRaw ?? 0);
 
+  console.log("usageCountRaw page.tsx", usageCountRaw);
+  console.log("usagecount:", usageCount);
   return (
     <DashboardPage
       user={session.user}

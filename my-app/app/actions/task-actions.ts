@@ -1,5 +1,6 @@
 
 "use server";
+// export const runtime = "nodejs";
 
 import { authOptions } from "@/lib/auth"; // Update path if you use "@/auth"
 import { getServerSession } from "next-auth";
@@ -21,10 +22,12 @@ export async function scheduleTask(formData: FormData) {
     return { error: "Unauthorized" };
   }
 
-   const key = `user:${session.user.id}:post_count`;
+   const key = `user:${session.user.id}:post`;
   
   // Get current count (defaults to 0 if null)
-  const currentUsage = await redis.get<number>(key) || 0;
+  // const currentUsage = await redis.get<number>(key) || 0;
+    const currentUsageRaw = await redis.get(key);
+  const currentUsage = Number(currentUsageRaw ?? 0);
   const LIMIT = 10;
 
   if (currentUsage >= LIMIT) {
@@ -92,6 +95,7 @@ export async function scheduleTask(formData: FormData) {
     });
     // increment... redis scheduling quota.. on success..
     await redis.incr(key);
+    console.log("this increase:");
 
     await Promise.all(promises);
 
