@@ -16,6 +16,6 @@ export async function GET() {
   url.searchParams.append("redirect_uri", redirectUri);
   url.searchParams.append("scope", scope);
   url.searchParams.append("state", "random_state_string");
-    console.log("redisrtecte;lk;lkajdf")
+    // console.log("redisrtecte;lk;lkajdf",url)
   return redirect(url.toString());
 }

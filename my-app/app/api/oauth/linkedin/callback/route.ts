@@ -70,6 +70,8 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const code = searchParams.get("code");
+  console.log("code:",code)
+
   const error = searchParams.get("error");
 
   // Handle cancellation or missing code

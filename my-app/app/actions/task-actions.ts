@@ -84,8 +84,22 @@ export async function scheduleTask(formData: FormData) {
     const promises = platforms.map(async (platform) => {
       // Determine the worker URL based on platform if needed
       // For now, using your existing twitter worker
-      const workerUrl = `${baseUrl}/api/workers/twitter`;
+      // console.log("${workerPath}",platform.toLowerCase())
+      // const workerUrl = `${baseUrl}/api/workers/twitter`;
 
+       let workerPath = "";
+      if (platform === "TWITTER") {
+        workerPath = "/api/workers/twitter";
+      } else if (platform === "LINKEDIN") {
+        workerPath = "/api/workers/linkedin"; // Make sure this file exists!
+      } else {
+        console.warn(`Unknown platform: ${platform}`);
+        return; 
+      }
+
+      const workerUrl = `${baseUrl}${workerPath}`;
+
+      // 
       return qstash.publishJSON({
         url: workerUrl,
         body: { taskId: task.id, platform },
