@@ -83,6 +83,7 @@ enum Platform {
   LINKEDIN
   TWITTER
   WHATSAPP
+  INSTAGRAM
 }
 
 model Task {

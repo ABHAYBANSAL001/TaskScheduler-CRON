@@ -45,6 +45,7 @@ export async function scheduleTask(formData: FormData) {
   const platforms: string[] = [];
   if (formData.get("TWITTER")) platforms.push("TWITTER");
   if (formData.get("LINKEDIN")) platforms.push("LINKEDIN");
+  if (formData.get("INSTAGRAM")) platforms.push("INSTAGRAM");
 
   // 3. Validation
   if (!content) return { error: "Content is required" };
@@ -93,8 +94,9 @@ export async function scheduleTask(formData: FormData) {
       } else if (platform === "LINKEDIN") {
         workerPath = "/api/workers/linkedin"; // Make sure this file exists!
       } else {
-        console.warn(`Unknown platform: ${platform}`);
-        return; 
+        workerPath = "/api/workers/instagram";
+        // console.warn(`Unknown platform: ${platform}`);
+        // return; 
       }
 
       const workerUrl = `${baseUrl}${workerPath}`;
