@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth"; // Your auth config
 import { redirect } from "next/navigation";
 import { DashboardProvider } from "./provider";
 import Sidebar from "@/components/dashboard/Sidebar";
+import { redis } from "@/lib/redis";
 // import Sidebar from "../../components/Sidebar";
 
 export default async function DashboardLayout({
@@ -15,12 +16,16 @@ export default async function DashboardLayout({
   if (!session) {
     redirect("/login");
   }
+  //
+  const redisKey = `user:${session.user.id}:posts`;
+  const usageCount = (await redis.get<number>(redisKey)) || 0;
 
+  console.log("redisUsage:", usageCount);
   return (
     <DashboardProvider user={session.user}>
       <div className="min-h-screen bg-black">
         {/* Sidebar (Desktop) */}
-        <Sidebar user={session.user} />
+        <Sidebar user={session.user} usageCount={usageCount} />
 
         {/* Main Content Area */}
         <div className="md:ml-64 min-h-screen flex flex-col">

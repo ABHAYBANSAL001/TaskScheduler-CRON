@@ -70,6 +70,7 @@ import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { redis } from "@/lib/redis";
 
 export default async function Dashboard() {
   const session = await getServerSession(authOptions);
@@ -77,35 +78,45 @@ export default async function Dashboard() {
   if (!session?.user?.id) {
     redirect("/login");
   }
+  const redisKey = `user:${session.user.id}:posts`;
 
-  const [postsCount, sentCount, upcomingPosts, connectedAccounts] =
-    await Promise.all([
-      // Total Scheduled/Pending
-      prisma.task.count({
-        where: { userId: session.user.id, status: "PENDING" },
-      }),
-      // Total Successful
-      prisma.task.count({
-        where: { userId: session.user.id, status: "COMPLETED" },
-      }),
-      // Queue
-      prisma.task.findMany({
-        where: { userId: session.user.id, status: "PENDING" },
-        orderBy: { scheduledAt: "asc" },
-        take: 5,
-        include: { executions: { select: { platform: true } } }, // Critical for icons
-      }),
-      // Connections
-      prisma.platformAccount.findMany({
-        where: { userId: session.user.id },
-        select: { platform: true },
-      }),
-    ]);
+  const [
+    usageCountRaw,
+    postsCount,
+    sentCount,
+    upcomingPosts,
+    connectedAccounts,
+  ] = await Promise.all([
+    // Total Scheduled/Pending
+
+    // redis.get<number>(redisKey),
+    redis.get(redisKey),
+    prisma.task.count({
+      where: { userId: session.user.id, status: "PENDING" },
+    }),
+    // Total Successful
+    prisma.task.count({
+      where: { userId: session.user.id, status: "COMPLETED" },
+    }),
+    // Queue
+    prisma.task.findMany({
+      where: { userId: session.user.id, status: "PENDING" },
+      orderBy: { scheduledAt: "asc" },
+      take: 5,
+      include: { executions: { select: { platform: true } } }, // Critical for icons
+    }),
+    // Connections
+    prisma.platformAccount.findMany({
+      where: { userId: session.user.id },
+      select: { platform: true },
+    }),
+  ]);
 
   const isXConnected = connectedAccounts.some((a) => a.platform === "TWITTER");
   const isLinkedinConnected = connectedAccounts.some(
     (a) => a.platform === "LINKEDIN",
   );
+  const usageCount = Number(usageCountRaw ?? 0);
 
   return (
     <DashboardPage
@@ -115,6 +126,8 @@ export default async function Dashboard() {
       upcomingPosts={upcomingPosts}
       isXConnected={isXConnected}
       isLinkedinConnected={isLinkedinConnected}
+      usageCount={usageCount || 0}
+      isPro={false}
     />
   );
 }

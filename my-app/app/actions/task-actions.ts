@@ -6,6 +6,8 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { Client } from "@upstash/qstash";
+import { redis } from "@/lib/redis";
+
 
 // Initialize QStash Client
 const qstash = new Client({
@@ -18,6 +20,19 @@ export async function scheduleTask(formData: FormData) {
   if (!session?.user?.id) {
     return { error: "Unauthorized" };
   }
+
+   const key = `user:${session.user.id}:post_count`;
+  
+  // Get current count (defaults to 0 if null)
+  const currentUsage = await redis.get<number>(key) || 0;
+  const LIMIT = 10;
+
+  if (currentUsage >= LIMIT) {
+    return { error: `Free limit reached (${LIMIT}/${LIMIT}). Upgrade to post more.` };
+  }
+
+  // Above. Redis Implementation...
+
 
   // 2. Extract Data
   const content = formData.get("content") as string;
@@ -75,6 +90,8 @@ export async function scheduleTask(formData: FormData) {
         retries: 3,
       });
     });
+    // increment... redis scheduling quota.. on success..
+    await redis.incr(key);
 
     await Promise.all(promises);
 
