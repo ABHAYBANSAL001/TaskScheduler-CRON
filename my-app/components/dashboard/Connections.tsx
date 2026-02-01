@@ -3,6 +3,7 @@
 import {
   Twitter,
   Linkedin,
+  Instagram,
   Plus,
   ExternalLink,
   AlertCircle,
@@ -14,9 +15,14 @@ import Link from "next/link";
 interface ConnectionStatusProps {
   isX: boolean;
   isLi: boolean;
+  isIns: boolean;
 }
 
-export default function ConnectionStatus({ isX, isLi }: ConnectionStatusProps) {
+export default function ConnectionStatus({
+  isX,
+  isLi,
+  isIns,
+}: ConnectionStatusProps) {
   // Calculate total connected for status message
   const connectedCount = [isX, isLi].filter(Boolean).length;
   const totalAccounts = 2;
@@ -61,6 +67,15 @@ export default function ConnectionStatus({ isX, isLi }: ConnectionStatusProps) {
           themeColor="text-white"
           bgTint="bg-[#0077b5] border-transparent"
           connectLink="/api/oauth/linkedin"
+        />
+
+        <AccountRow
+          platform="Instagram"
+          isConnected={isIns}
+          icon={<Instagram size={14} />}
+          themeColor="text-white"
+          bgTint="bg-[#0077b5] border-transparent"
+          connectLink="/api/oauth/instagram"
         />
       </div>
 

@@ -16,6 +16,7 @@ import {
   Lock,
   AlertTriangle,
   Zap,
+  Instagram,
 } from "lucide-react";
 import {
   format,
@@ -53,6 +54,7 @@ const TOP_EMOJIS = [
 interface QuickPostProps {
   isXConnected: boolean;
   isLinkedinConnected: boolean;
+  isInstagramConnected: boolean;
   userImage?: string | null;
   usageCount: number;
   isPro: boolean;
@@ -67,6 +69,7 @@ const getLocalISOString = (date: Date) => {
 export default function QuickPostForm({
   isXConnected,
   isLinkedinConnected,
+  isInstagramConnected,
   userImage,
   usageCount,
   isPro,
@@ -248,7 +251,7 @@ export default function QuickPostForm({
       textareaRef.current?.focus();
       return;
     }
-    if (!isXConnected && !isLinkedinConnected) {
+    if (!isXConnected && !isLinkedinConnected && !isInstagramConnected) {
       triggerError("Connect an account first");
       return;
     }
@@ -382,6 +385,16 @@ export default function QuickPostForm({
                     isActive={selectedPlatforms.includes("LINKEDIN")}
                     onClick={() =>
                       togglePlatform("LINKEDIN", isLinkedinConnected)
+                    }
+                    activeColor="bg-[#0A66C2] text-white border-[#0A66C2]"
+                  />
+                  <PlatformToggle
+                    icon={<Instagram className="w-3.5 h-3.5" />}
+                    label="Instagram"
+                    isConnected={isInstagramConnected}
+                    isActive={selectedPlatforms.includes("INSTAGRAM")}
+                    onClick={() =>
+                      togglePlatform("INSTAGRAM", isInstagramConnected)
                     }
                     activeColor="bg-[#0A66C2] text-white border-[#0A66C2]"
                   />

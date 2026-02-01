@@ -14,10 +14,12 @@ export default function DashboardViewer({
   upcomingPosts,
   isXConnected,
   isLinkedinConnected,
+  isInstagramConnected,
   usageCount,
   isPro,
 }: any) {
-  const hasConnections = isXConnected || isLinkedinConnected;
+  const hasConnections =
+    isXConnected || isLinkedinConnected || isInstagramConnected;
 
   return (
     <div className="max-w-6xl mx-auto  p-4 md:p-1  transition-all">
@@ -59,6 +61,7 @@ export default function DashboardViewer({
           <QuickPost
             isXConnected={isXConnected}
             isLinkedinConnected={isLinkedinConnected}
+            isInstagramConnected={isInstagramConnected}
             userImage={user?.image}
             usageCount={usageCount}
             isPro={isPro}
