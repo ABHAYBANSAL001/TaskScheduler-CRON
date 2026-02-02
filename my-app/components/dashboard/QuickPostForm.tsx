@@ -18,6 +18,8 @@ import {
   Zap,
   // Instagram,
 } from "lucide-react";
+// Add this to your imports
+import { useUploadThing } from "@/lib/uploadthings";
 import {
   format,
   addMinutes,
@@ -99,6 +101,9 @@ export default function QuickPostForm({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);
+
+  // upload images
+  const { startUpload } = useUploadThing("imageUploader");
 
   // --- Effects ---
   useEffect(() => {
@@ -262,14 +267,33 @@ export default function QuickPostForm({
     }
 
     setIsPending(true);
-    const formData = new FormData();
-    formData.append("content", content);
-    selectedPlatforms.forEach((p) => formData.append(p, "on"));
-
-    let finalDate: Date = scheduledDate ? scheduledDate : new Date();
-    formData.set("scheduledAt", finalDate.toISOString());
 
     try {
+      let uploadedUrls: string[] = [];
+      if (mediaFiles.length > 0) {
+        // This uploads to the cloud and returns an array of results containing URLs
+        const uploadRes = await startUpload(mediaFiles);
+
+        if (!uploadRes) {
+          throw new Error("Image upload failed");
+        }
+
+        uploadedUrls = uploadRes.map((res) => res.url);
+        // console.log("uploadedUrl:")
+      }
+
+      const formData = new FormData();
+      formData.append("content", content);
+      selectedPlatforms.forEach((p) => formData.append(p, "on"));
+
+      if (uploadedUrls.length > 0) {
+        // We can stringify the array to pass it easily in FormData
+        formData.append("mediaUrls", JSON.stringify(uploadedUrls));
+      }
+
+      let finalDate: Date = scheduledDate ? scheduledDate : new Date();
+      formData.set("scheduledAt", finalDate.toISOString());
+
       await scheduleTask(formData);
       await new Promise((r) => setTimeout(r, 800));
       setContent("");
@@ -389,7 +413,7 @@ export default function QuickPostForm({
                     }
                     activeColor="bg-[#0A66C2] text-white border-[#0A66C2]"
                   />
-                  
+
                   {/* <PlatformToggle
                     icon={<Instagram className="w-3.5 h-3.5" />}
                     label="Instagram"

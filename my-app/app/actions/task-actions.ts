@@ -43,10 +43,31 @@ export async function scheduleTask(formData: FormData) {
   
   // Extract platforms
   const platforms: string[] = [];
-  if (formData.get("TWITTER")) platforms.push("TWITTER");
-  if (formData.get("LINKEDIN")) platforms.push("LINKEDIN");
-  if (formData.get("INSTAGRAM")) platforms.push("INSTAGRAM");
-if (formData.get("WHATSAPP")) platforms.push("WHATSAPP");
+   const mediaUrlsString = formData.get("mediaUrls") as string;
+  let mediaUrls: string[] = [];
+  
+  if (mediaUrlsString) {
+    try {
+      mediaUrls = JSON.parse(mediaUrlsString);
+    } catch (e) {
+      console.error("Failed to parse media URLs");
+    }
+  }
+
+   // If your frontend uses append('platforms', 'X'), we use getAll here.
+  const rawPlatforms = formData.getAll("platforms") as string[]; 
+  
+  // If rawPlatforms is empty, fall back to checking individual keys (Backward compatibility)
+  // const platforms: string[] = [];
+  if (rawPlatforms.length > 0) {
+    platforms.push(...rawPlatforms);
+  } else {
+    // Fallback check
+    if (formData.get("TWITTER")) platforms.push("TWITTER");
+    if (formData.get("LINKEDIN")) platforms.push("LINKEDIN");
+    if (formData.get("INSTAGRAM")) platforms.push("INSTAGRAM");
+    if (formData.get("WHATSAPP")) platforms.push("WHATSAPP");
+  }
   // 3. Validation
   if (!content) return { error: "Content is required" };
   if (platforms.length === 0) return { error: "Select a platform" };
@@ -68,7 +89,7 @@ if (formData.get("WHATSAPP")) platforms.push("WHATSAPP");
         content: content,
         scheduledAt: scheduledAt,
         status: "PENDING",
-        mediaUrls: [],
+        mediaUrls: mediaUrls,
         executions: {
           create: platforms.map((p) => ({
             platform: p as any,
