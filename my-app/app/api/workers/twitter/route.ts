@@ -608,36 +608,60 @@ async function refreshTwitterToken(refreshToken: string) {
 }
 
 // --- HELPER 2: Upload Media (V1.1) ---
+// --- HELPER 2: Upload Media (V1.1) - FIXED & DEBUGGED ---
 async function uploadMediaToTwitter(imageUrl: string, accessToken: string) {
-  // 1. Download the image from your storage (UploadThing/S3)
+  console.log(`⬇️ Downloading image: ${imageUrl}`);
+  
+  // 1. Download the image
   const imgRes = await fetch(imageUrl);
-  if (!imgRes.ok) throw new Error("Failed to download image from source");
+  if (!imgRes.ok) throw new Error(`Failed to download image from storage: ${imgRes.statusText}`);
   
   const arrayBuffer = await imgRes.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
 
+  if (buffer.length === 0) {
+    throw new Error("Downloaded image is empty (0 bytes). Check the URL.");
+  }
+  
+  console.log(`📦 Image downloaded: ${buffer.length} bytes. Uploading to Twitter...`);
+
   // 2. Prepare FormData
   const formData = new FormData();
-  // CRITICAL: You must provide a filename (e.g. "image.jpg") for Twitter to accept the Blob
-  const blob = new Blob([buffer], { type: "image/jpeg" });
+  // Using 'image/jpeg' as default, but ideally detecting from URL is better
+  const blob = new Blob([buffer], { type: "image/jpeg" }); 
   formData.append("media", blob, "upload.jpg"); 
 
-  // 3. Upload to Twitter V1.1 Endpoint
+  // 3. Upload to Twitter V1.1
   const uploadRes = await fetch("https://upload.twitter.com/1.1/media/upload.json", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${accessToken}`,
-      // Note: Do NOT set Content-Type here; fetch sets it with boundary automatically for FormData
+      // Note: Do NOT set Content-Type here; fetch sets the boundary automatically
     },
     body: formData,
   });
 
-  const data = await uploadRes.json();
+  // 🛑 FIX: Read text first to avoid "Unexpected end of JSON" crash
+  const responseText = await uploadRes.text();
 
   if (!uploadRes.ok) {
-    console.error("X Media Upload Error:", data);
-    throw new Error(data.error || "Twitter rejected the media");
+    console.error("❌ Twitter Upload Failed. Raw Response:", responseText);
+    
+    // Common error handling
+    if (uploadRes.status === 401 || uploadRes.status === 403) {
+      throw new Error("Twitter Auth Error: Media upload refused. (OAuth 2.0 scope issue?)");
+    }
+    
+    throw new Error(`Twitter Upload Error: ${responseText}`);
   }
+
+  // Parse JSON only if successful and not empty
+  if (!responseText) {
+    throw new Error("Twitter returned an empty response.");
+  }
+
+  const data = JSON.parse(responseText);
+  console.log("✅ Media Uploaded! ID:", data.media_id_string);
 
   return data.media_id_string;
 }
