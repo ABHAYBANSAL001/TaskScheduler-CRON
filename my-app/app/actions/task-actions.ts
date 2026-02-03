@@ -162,6 +162,12 @@ const qstash = new Client({
   token: process.env.QSTASH_TOKEN!,
 });
 
+const PLATFORM_LIMITS : Record<string,number> = {
+   TWITTER: 10,
+  LINKEDIN: 60,
+  INSTAGRAM: 10, // Default limit
+  WHATSAPP: 10   // Default limit
+}
 export async function scheduleTask(formData: FormData) {
   // 1. Authentication Check
   const session = await getServerSession(authOptions);
@@ -169,24 +175,24 @@ export async function scheduleTask(formData: FormData) {
     return { error: "Unauthorized" };
   }
 
-  const key = `user:${session.user.id}:post`;
+  // const key = `user:${session.user.id}:post`;
   
-  // --- FIX START: ROBUST READ ---
-  // We explicitly cast the return type and handle NaN
-  const currentUsageRaw = await redis.get(key) as string | number | null;
-  let currentUsage = Number(currentUsageRaw);
+  // // --- FIX START: ROBUST READ ---
+  // // We explicitly cast the return type and handle NaN
+  // const currentUsageRaw = await redis.get(key) as string | number | null;
+  // let currentUsage = Number(currentUsageRaw);
   
-  // If the value in Redis is garbage (NaN) or null, treat it as 0
-  if (isNaN(currentUsage) || currentUsageRaw === null) {
-    currentUsage = 0;
-  }
-  // --- FIX END ---
+  // // If the value in Redis is garbage (NaN) or null, treat it as 0
+  // if (isNaN(currentUsage) || currentUsageRaw === null) {
+  //   currentUsage = 0;
+  // }
+  // // --- FIX END ---
 
-  const LIMIT = 10;
+  // const LIMIT = 10;
 
-  if (currentUsage >= LIMIT) {
-    return { error: `Free limit reached (${LIMIT}/${LIMIT}). Upgrade to post more.` };
-  }
+  // if (currentUsage >= LIMIT) {
+  //   return { error: `Free limit reached (${LIMIT}/${LIMIT}). Upgrade to post more.` };
+  // }
 
   // 2. Extract Data
   const content = formData.get("content") as string;
@@ -218,6 +224,28 @@ export async function scheduleTask(formData: FormData) {
   // 3. Validation
   if (!content) return { error: "Content is required" };
   if (platforms.length === 0) return { error: "Select a platform" };
+
+  for (const platform of platforms) {
+    const limit = PLATFORM_LIMITS[platform] || 10;
+    
+    // Key format: user:{id}:quota:{PLATFORM}
+    const key = `user:${session.user.id}:quota:${platform}`;
+    
+    // --- ROBUST READ ---
+    const currentUsageRaw = await redis.get(key) as string | number | null;
+    let currentUsage = Number(currentUsageRaw);
+    
+    if (isNaN(currentUsage) || currentUsageRaw === null) {
+      currentUsage = 0;
+    }
+
+    if (currentUsage >= limit) {
+      return { 
+        error: `You have reached your limit for ${platform === "TWITTER" ? "X (Twitter)" : "LinkedIn"} (${limit} posts). Upgrade to post more.` 
+      };
+    }
+  }
+
 
   // 4. Parse Date & Convert to Seconds
   const scheduledAt = new Date(dateStr);
@@ -271,13 +299,32 @@ export async function scheduleTask(formData: FormData) {
     // --- FIX START: ROBUST INCREMENT ---
     // We wrap INCR in a try/catch. If the key is corrupted (not an integer),
     // INCR fails. In the catch block, we force-overwrite the key with a clean number.
-    try {
-      await redis.incr(key);
-    } catch (redisError) {
-      console.warn("Redis INCR failed (likely bad data format), resetting key:", redisError);
-      // Force set the value to (current known usage + 1)
-      await redis.set(key, currentUsage + 1);
+    // try {
+    //   await redis.incr(key);
+    // } catch (redisError) {
+    //   console.warn("Redis INCR failed (likely bad data format), resetting key:", redisError);
+    //   // Force set the value to (current known usage + 1)
+    //   await redis.set(key, currentUsage + 1);
+    // }
+
+     for (const platform of platforms) {
+      const key = `user:${session.user.id}:quota:${platform}`;
+      
+      // --- ROBUST INCREMENT ---
+      try {
+        await redis.incr(key);
+      } catch (redisError) {
+        console.warn(`Redis INCR failed for ${platform}, resetting key:`, redisError);
+        // Get current value again just to be safe, or default to 1
+        const val = await redis.get(key) as string | number | null;
+        const numVal = Number(val) || 0;
+        await redis.set(key, numVal + 1);
+      }
     }
+    
+    console.log("Quotas updated successfully");
+
+    
     // --- FIX END ---
     
     console.log("Quota increased successfully");

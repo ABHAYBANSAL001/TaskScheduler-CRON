@@ -241,10 +241,13 @@ import { useState } from "react";
 // Add usageCount to props
 export default function Sidebar({
   user,
-  usageCount = 0,
+  usageStats = { twitter: 0, linkedin: 0 },
 }: {
   user: any;
-  usageCount: number;
+  usageStats?: {
+    twitter: number;
+    linkedin: number;
+  };
 }) {
   const pathname = usePathname();
   const [isScheduleOpen, setIsScheduleOpen] = useState(true);
@@ -256,9 +259,13 @@ export default function Sidebar({
   // console.log("🔍 Checking Redis Key:", redisKey);
   // const val = await redis.get<number>(redisKey);
 
-  const limit = 10;
-  const percent = Math.min((usageCount / limit) * 100, 100);
-  const isLimitReached = usageCount >= limit;
+  // const limit = 10;
+  const LIMITS = {
+    TWITTER: 10,
+    LINKEDIN: 60,
+  };
+  // const percent = Math.min((usageCount / limit) * 100, 100);
+  // const isLimitReached = usageCount >= limit;
 
   return (
     <aside className="w-60 bg-[#09090b] border-r border-white/5 flex flex-col hidden md:flex h-screen fixed left-0 top-0 z-50">
@@ -351,7 +358,7 @@ export default function Sidebar({
       </nav>
 
       {/* --- PLAN LIMIT CARD --- */}
-      <div className="px-3 mb-4">
+      {/* <div className="px-3 mb-4">
         <div className="bg-zinc-900/40 border border-white/5 rounded-xl p-3 relative overflow-hidden group">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-1.5">
@@ -375,7 +382,6 @@ export default function Sidebar({
               : `You've used ${usageCount} of your ${limit} lifetime messages.`}
           </p>
 
-          {/* Progress Bar */}
           <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden mb-3">
             <div
               className={`h-full rounded-full transition-all duration-1000 ${isLimitReached ? "bg-red-500" : "bg-yellow-500/80"}`}
@@ -386,6 +392,50 @@ export default function Sidebar({
           <Link
             href="/dashboard/settings"
             className="block w-full py-1.5 text-center text-[10px] font-bold text-white bg-white/5 border border-white/5 rounded-md hover:bg-white/10 transition-all uppercase tracking-wider"
+          >
+            Upgrade Plan
+          </Link>
+        </div>
+      </div> */}
+
+      <div className="px-3 mb-4">
+        <div className="bg-zinc-900/40 border border-white/5 rounded-xl p-3.5 relative overflow-hidden group">
+          {/* Header */}
+          <div className="flex items-center gap-2 mb-3">
+            <div className="p-1.5 bg-yellow-500/10 rounded-md">
+              <Zap className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+            </div>
+            <div>
+              <p className="text-[11px] font-bold text-zinc-200 uppercase tracking-tight leading-none">
+                Free Plan
+              </p>
+              <p className="text-[10px] text-zinc-500 font-medium">
+                Monthly Quota
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3 mb-3">
+            {/* Twitter Quota */}
+            <QuotaRow
+              icon={Twitter}
+              label="X (Twitter)"
+              count={usageStats.twitter}
+              limit={LIMITS.TWITTER}
+            />
+
+            {/* LinkedIn Quota */}
+            <QuotaRow
+              icon={Linkedin}
+              label="LinkedIn"
+              count={usageStats.linkedin}
+              limit={LIMITS.LINKEDIN}
+            />
+          </div>
+
+          <Link
+            href="/dashboard/settings"
+            className="flex items-center justify-center w-full py-1.5 text-[10px] font-bold text-black bg-white rounded-lg hover:bg-zinc-200 transition-colors uppercase tracking-wide shadow-lg shadow-white/5"
           >
             Upgrade Plan
           </Link>
@@ -443,6 +493,50 @@ function NavItem({ href, icon: Icon, label, active }: any) {
       />
       {label}
     </Link>
+  );
+}
+
+function QuotaRow({
+  icon: Icon,
+  label,
+  count,
+  limit,
+}: {
+  icon: any;
+  label: string;
+  count: number;
+  limit: number;
+}) {
+  const percentage = Math.min((count / limit) * 100, 100);
+  const isLimitReached = count >= limit;
+  const isNearLimit = percentage > 80;
+
+  let progressColor = "bg-emerald-500";
+  if (isLimitReached) progressColor = "bg-red-500";
+  else if (isNearLimit) progressColor = "bg-yellow-500";
+
+  return (
+    <div className="group/row">
+      <div className="flex items-center justify-between mb-1.5">
+        <div className="flex items-center gap-1.5 text-zinc-400 group-hover/row:text-zinc-300 transition-colors">
+          <Icon className="w-3 h-3" />
+          <span className="text-[10px] font-medium">{label}</span>
+        </div>
+        <span
+          className={`text-[9px] font-mono font-medium ${isLimitReached ? "text-red-400" : "text-zinc-500"}`}
+        >
+          {count}/{limit}
+        </span>
+      </div>
+
+      {/* Progress Track */}
+      <div className="h-1 w-full bg-zinc-800 rounded-full overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-700 ease-out ${progressColor} shadow-[0_0_8px_rgba(0,0,0,0.3)]`}
+          style={{ width: `${percentage}%` }}
+        />
+      </div>
+    </div>
   );
 }
 
