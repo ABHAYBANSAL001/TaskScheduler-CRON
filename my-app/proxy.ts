@@ -17,6 +17,10 @@ export default withAuth(
       )
     }
 
+    if (!isAuth && pathname.startsWith("/dashboard")) {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
+
     // otherwise continue
     return NextResponse.next()
   },

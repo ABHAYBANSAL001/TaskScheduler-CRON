@@ -3,7 +3,8 @@ import { authOptions } from "@/lib/auth"; // Your auth config
 import { redirect } from "next/navigation";
 import { DashboardProvider } from "../provider";
 import Sidebar from "@/components/dashboard/Sidebar";
-import { redis } from "@/lib/redis";
+// import { redis } from "@/lib/redis";
+import { getUsageCountByPlatform } from "@/app/actions/usage-actions";
 // import Sidebar from "../../components/Sidebar";
 
 export const dynamic = "force-dynamic";
@@ -22,18 +23,20 @@ export default async function DashboardLayout({
   // const usageCount = (await redis.get<number>(redisKey)) || 0;
   // console.log("usageCount:layout:", usageCount);
 
-  const twitterKey = `user:${session.user.id}:quota:TWITTER`;
-  const linkedinKey = `user:${session.user.id}:quota:LINKEDIN`;
+  // const twitterKey = `user:${session.user.id}:quota:TWITTER`;
+  // const linkedinKey = `user:${session.user.id}:quota:LINKEDIN`;
 
-  const [twitterUsage, linkedinUsage] = await Promise.all([
-    redis.get<number>(twitterKey),
-    redis.get<number>(linkedinKey),
-  ]);
+  // const [twitterUsage, linkedinUsage] = await Promise.all([
+  //   redis.get<number>(twitterKey),
+  //   redis.get<number>(linkedinKey),
+  // ]);
 
-  const usageCount = {
-    twitter: twitterUsage ?? 0,
-    linkedin: linkedinUsage ?? 0,
-  };
+  // const usageCount = {
+  //   twitter: twitterUsage ?? 0,
+  //   linkedin: linkedinUsage ?? 0,
+  // };
+
+  const usageCount = await getUsageCountByPlatform();
 
   return (
     <DashboardProvider user={session.user}>
@@ -52,7 +55,7 @@ export default async function DashboardLayout({
           </header>
 
           {/* Dynamic Page Content */}
-          <main className="flex-1 p-6 md:p-10">{children}</main>
+          <main className="flex-1 p-6 md:p-6">{children}</main>
         </div>
       </div>
     </DashboardProvider>

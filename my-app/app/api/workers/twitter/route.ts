@@ -589,6 +589,7 @@ import { verifySignatureAppRouter } from "@upstash/qstash/dist/nextjs";
 import { prisma } from "@/lib/db";
 import { decrypt, encrypt } from "@/lib/crypto"; // <--- IMPORT ENCRYPT
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 
 async function handler(req: Request) {
   const body = await req.json();
@@ -738,6 +739,7 @@ async function handler(req: Request) {
         where: { id: taskId },
         data: { status: "FAILED" }
     });
+      revalidateTag("dashboard-posts", "dashboard-posts-key");
 
     return new NextResponse("Worker Processed (Failed)", { status: 200 });
   }

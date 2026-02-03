@@ -26,11 +26,12 @@ export default function DashboardViewer({
   //   isWhatsAppConnected;
 
   const hasConnections = isXConnected || isLinkedinConnected;
+  console.log("user:", user);
 
   return (
     <div className="max-w-6xl mx-auto  p-4 md:p-1  transition-all">
       {/* 1. HEADER AREA */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-6">
+      {/* <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-6">
         <div>
           <h1 className="text-2xl font-bold text-white tracking-tight">
             Dashboard
@@ -58,6 +59,48 @@ export default function DashboardViewer({
             color="text-emerald-400"
           />
         </div>
+      </div> */}
+      <div className="flex flex-col gap-6 border-b border-white/5 pb-6">
+        {/* TOP ROW */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-white tracking-tight">
+              Dashboard
+            </h1>
+            <p className="text-zinc-500 text-sm mt-1 leading-relaxed">
+              Welcome back,{" "}
+              <span className="text-zinc-300 font-medium">
+                {user.name?.split(" ")[0]}
+              </span>
+              . Manage, schedule, and publish content across platforms — all in
+              one place.
+            </p>
+          </div>
+
+          {/* STATS */}
+          <div className="flex gap-2">
+            <StatPill
+              icon={Clock}
+              label="Queued"
+              value={postsCount}
+              color="text-blue-400"
+            />
+            <StatPill
+              icon={CheckCircle2}
+              label="Published"
+              value={sentCount}
+              color="text-emerald-400"
+            />
+          </div>
+        </div>
+
+        {/* CAPABILITIES ROW */}
+        <div className="flex flex-wrap gap-2 text-[11px] font-semibold">
+          <CapabilityBadge text="Multi-platform scheduling" />
+          <CapabilityBadge text="Image uploads (LinkedIn supported)" />
+          <CapabilityBadge text="Queue-based publishing" />
+          <CapabilityBadge text="Background delivery engine" />
+        </div>
       </div>
 
       {/* 2. GRID SYSTEM */}
@@ -69,6 +112,7 @@ export default function DashboardViewer({
             isLinkedinConnected={isLinkedinConnected}
             // isInstagramConnected={isInstagramConnected}
             userImage={user?.image}
+            userId={user?.id}
             // usageCount={usageCount}
             isPro={isPro}
           />
@@ -127,6 +171,14 @@ function StatPill({ icon: Icon, label, value, color }: any) {
           {label}
         </span>
       </div>
+    </div>
+  );
+}
+
+function CapabilityBadge({ text }: { text: string }) {
+  return (
+    <div className="px-3 py-1 rounded-full bg-zinc-900/60 border border-white/5 text-zinc-400">
+      {text}
     </div>
   );
 }

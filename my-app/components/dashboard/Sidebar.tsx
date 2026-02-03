@@ -436,6 +436,7 @@ export default function Sidebar({
           <Link
             href="/dashboard/settings"
             className="flex items-center justify-center w-full py-1.5 text-[10px] font-bold text-black bg-white rounded-lg hover:bg-zinc-200 transition-colors uppercase tracking-wide shadow-lg shadow-white/5"
+            prefetch={false}
           >
             Upgrade Plan
           </Link>
@@ -484,6 +485,7 @@ function NavItem({ href, icon: Icon, label, active }: any) {
           ? "text-white bg-white/5"
           : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03]"
       }`}
+      prefetch={false}
     >
       {active && (
         <div className="absolute left-0 w-[2px] h-4 bg-blue-500 rounded-full" />
@@ -549,6 +551,7 @@ function SubItem({ href, icon: Icon, label, active }: any) {
           ? "text-zinc-100 bg-white/5"
           : "text-zinc-500 hover:text-zinc-300"
       }`}
+      prefetch={false}
     >
       <Icon
         className={`w-3.5 h-3.5 ${active ? "text-zinc-200" : "text-zinc-600"}`}

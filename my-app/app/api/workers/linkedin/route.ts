@@ -159,6 +159,7 @@ import { verifySignatureAppRouter } from "@upstash/qstash/dist/nextjs";
 import { prisma } from "@/lib/db";
 import { decrypt } from "@/lib/crypto";
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 
 // --- Helper: Upload Image from URL to LinkedIn ---
 async function uploadImageToLinkedIn(accessToken: string, authorUrn: string, imageUrl: string) {
@@ -377,6 +378,7 @@ async function handler(req: Request) {
         where: { id: taskId },
         data: { status: "FAILED" }
     });
+      revalidateTag("dashboard-posts", "dashboard-posts-key");
 
     return new NextResponse("Worker Processed (Failed)", { status: 200 });
   }

@@ -71,6 +71,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { redis } from "@/lib/redis";
+import { getCachedDashboardPosts } from "@/app/actions/usage-actions";
 
 // export const dynamic = "force-dynamic";
 
@@ -85,29 +86,32 @@ export default async function Dashboard() {
 
   const [
     // usageCountRaw,
-    postsCount,
-    sentCount,
-    upcomingPosts,
+    [postsCount, sentCount, upcomingPosts],
+    // postsCount,
+    // sentCount,
+    // upcomingPosts,
     connectedAccounts,
   ] = await Promise.all([
     // Total Scheduled/Pending
 
     // redis.get<number>(redisKey),
     // redis.get(redisKey),
-    prisma.task.count({
-      where: { userId: session.user.id, status: "PENDING" },
-    }),
-    // Total Successful
-    prisma.task.count({
-      where: { userId: session.user.id, status: "COMPLETED" },
-    }),
-    // Queue
-    prisma.task.findMany({
-      where: { userId: session.user.id, status: "PENDING" },
-      orderBy: { scheduledAt: "asc" },
-      take: 5,
-      include: { executions: { select: { platform: true } } }, // Critical for icons
-    }),
+    // prisma.task.count({
+    //   where: { userId: session.user.id, status: "PENDING" },
+    // }),
+    // // Total Successful
+    // prisma.task.count({
+    //   where: { userId: session.user.id, status: "COMPLETED" },
+    // }),
+    // // Queue
+    // prisma.task.findMany({
+    //   where: { userId: session.user.id, status: "PENDING" },
+    //   orderBy: { scheduledAt: "asc" },
+    //   take: 5,
+    //   include: { executions: { select: { platform: true } } }, // Critical for icons
+    // }),
+
+    getCachedDashboardPosts(session.user.id),
     // Connections
     prisma.platformAccount.findMany({
       where: { userId: session.user.id },

@@ -153,7 +153,7 @@
 import { authOptions } from "@/lib/auth"; 
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/db";
-import { revalidatePath } from "next/cache";
+import {  revalidatePath,revalidateTag } from "next/cache";
 import { Client } from "@upstash/qstash";
 import { redis } from "@/lib/redis";
 
@@ -294,6 +294,7 @@ export async function scheduleTask(formData: FormData) {
       });
     });
 
+
     await Promise.all(promises);
 
     // --- FIX START: ROBUST INCREMENT ---
@@ -329,7 +330,13 @@ export async function scheduleTask(formData: FormData) {
     
     console.log("Quota increased successfully");
 
-    revalidatePath("/dashboard","page");
+    // revalidatePath("/dashboard","page");
+    //  revalidateTag("dashboard-posts"); 
+    // Pass the cache profile string used when creating the cache above
+    revalidateTag("dashboard-posts", "dashboard-posts-key");
+    
+    // // 2. Update the Sidebar Quota (Usage Limits)
+    // revalidateTag("user-quota");
     return { success: true };
 
   } catch (error: any) {

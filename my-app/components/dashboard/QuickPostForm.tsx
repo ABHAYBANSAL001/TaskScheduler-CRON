@@ -2369,7 +2369,7 @@ import {
 import { scheduleTask } from "@/app/actions/task-actions";
 import { generatePostContent } from "@/app/actions/ai-actions";
 import Link from "next/link";
-import { redis } from "@/lib/redis";
+// import { redis } from "@/lib/redis";
 import { getUsageCountByPlatform } from "@/app/actions/usage-actions";
 // --- Configuration ---
 const TOP_EMOJIS = [
@@ -2399,6 +2399,7 @@ interface QuickPostProps {
   userImage?: string | null;
   // usageCount: number;
   isPro: boolean;
+  userId: string;
 }
 // instead of this call usage actions
 // async function ab(session: any) {
@@ -2432,6 +2433,7 @@ export default function QuickPostForm({
   userImage,
   // usageCount,
   isPro,
+  userId,
 }: QuickPostProps) {
   // --- State ---
   const [content, setContent] = useState("");
