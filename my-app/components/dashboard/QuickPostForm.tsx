@@ -294,7 +294,7 @@ export default function QuickPostForm({
       let finalDate: Date = scheduledDate ? scheduledDate : new Date();
       formData.set("scheduledAt", finalDate.toISOString());
 
-      // await scheduleTask(formData);
+      await scheduleTask(formData);
       await new Promise((r) => setTimeout(r, 800));
       setContent("");
       setSelectedPlatforms([]);
