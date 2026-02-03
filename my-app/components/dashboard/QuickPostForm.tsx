@@ -2881,6 +2881,7 @@ export default function QuickPostForm({
                     <Link
                       href="/dashboard/connections"
                       className="ml-1 text-[10px] text-zinc-500 hover:text-blue-400 flex items-center gap-1 group whitespace-nowrap"
+                      prefetch={false}
                     >
                       <Plus className="w-3 h-3" />
                       <span className="underline decoration-zinc-700 underline-offset-2 group-hover:decoration-blue-400">

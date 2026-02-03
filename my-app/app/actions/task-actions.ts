@@ -330,10 +330,10 @@ export async function scheduleTask(formData: FormData) {
     
     console.log("Quota increased successfully");
 
-    // revalidatePath("/dashboard","page");
+    revalidatePath("/dashboard","page");
     //  revalidateTag("dashboard-posts"); 
     // Pass the cache profile string used when creating the cache above
-    revalidateTag("dashboard-posts", "dashboard-posts-key");
+    // revalidateTag("dashboard-posts", "dashboard-posts-key");
     
     // // 2. Update the Sidebar Quota (Usage Limits)
     // revalidateTag("user-quota");

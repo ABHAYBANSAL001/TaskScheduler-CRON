@@ -7,7 +7,7 @@ import Sidebar from "@/components/dashboard/Sidebar";
 import { getUsageCountByPlatform } from "@/app/actions/usage-actions";
 // import Sidebar from "../../components/Sidebar";
 
-export const dynamic = "force-dynamic";
+// export const dynamic = "force-dynamic";
 export default async function DashboardLayout({
   children,
 }: {
@@ -55,7 +55,7 @@ export default async function DashboardLayout({
           </header>
 
           {/* Dynamic Page Content */}
-          <main className="flex-1 p-6 md:p-6">{children}</main>
+          <main className="flex-1 p-6 md:p-10">{children}</main>
         </div>
       </div>
     </DashboardProvider>

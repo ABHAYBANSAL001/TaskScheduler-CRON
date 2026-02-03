@@ -378,7 +378,7 @@ async function handler(req: Request) {
         where: { id: taskId },
         data: { status: "FAILED" }
     });
-      revalidateTag("dashboard-posts", "dashboard-posts-key");
+      // revalidateTag("dashboard-posts", "dashboard-posts-key");
 
     return new NextResponse("Worker Processed (Failed)", { status: 200 });
   }
