@@ -422,10 +422,12 @@
 
 // export const POST = verifySignatureAppRouter(handler);
 
+
 import { verifySignatureAppRouter } from "@upstash/qstash/dist/nextjs";
 import { prisma } from "@/lib/db";
 import { decrypt, encrypt } from "@/lib/crypto";
 import { NextResponse } from "next/server";
+import { TwitterApi } from "twitter-api-v2"; // <--- NEW IMPORT
 
 async function handler(req: Request) {
   const body = await req.json();
@@ -446,7 +448,7 @@ async function handler(req: Request) {
 
   if (!task) return new NextResponse("Task not found", { status: 404 });
 
-  // 2. Check Execution Status
+  // 2. Check Execution
   const execution = task.executions.find((e) => e.platform === "TWITTER");
   if (!execution || execution.status === "SUCCESS") {
     return new NextResponse("Already processed", { status: 200 });
@@ -468,7 +470,7 @@ async function handler(req: Request) {
       where: { id: execution.id },
       data: { status: "FAILED", error: "No Connected Account" },
     });
-    return new NextResponse("No connected Twitter account", { status: 200 });
+    return new NextResponse("No account", { status: 200 });
   }
 
   // ============================================================
@@ -477,38 +479,47 @@ async function handler(req: Request) {
   let accessToken = decrypt(twitterAccount.encryptedAccessToken);
   const now = new Date();
   
-  // Refresh if expired or expires within 5 mins
   if (twitterAccount.expiresAt && twitterAccount.expiresAt < new Date(now.getTime() + 5 * 60000)) {
     console.log("⏳ Token expired. Refreshing...");
     try {
       if (!twitterAccount.encryptedRefreshToken) throw new Error("No refresh token");
       
       const refreshToken = decrypt(twitterAccount.encryptedRefreshToken);
-      const newTokens = await refreshTwitterToken(refreshToken);
+      
+      // Use library to refresh
+      const client = new TwitterApi({ 
+        clientId: process.env.TWITTER_CLIENT_ID!, 
+        clientSecret: process.env.TWITTER_CLIENT_SECRET! 
+      });
+      
+      const { client: newClient, accessToken: newAccess, refreshToken: newRefresh, expiresIn } = 
+        await client.refreshOAuth2Token(refreshToken);
 
-      // Save new tokens
-      twitterAccount = await prisma.platformAccount.update({
+      await prisma.platformAccount.update({
         where: { id: twitterAccount.id },
         data: {
-          encryptedAccessToken: encrypt(newTokens.access_token),
-          encryptedRefreshToken: encrypt(newTokens.refresh_token),
-          expiresAt: new Date(Date.now() + newTokens.expires_in * 1000),
+          encryptedAccessToken: encrypt(newAccess),
+          encryptedRefreshToken: encrypt(newRefresh!),
+          expiresAt: new Date(Date.now() + expiresIn * 1000),
         },
       });
       
-      accessToken = newTokens.access_token;
+      accessToken = newAccess;
       console.log("✅ Token refreshed.");
     } catch (error: any) {
       console.error("Refresh Failed:", error);
       await prisma.taskExecution.update({
         where: { id: execution.id },
-        data: { status: "FAILED", error: "Connection expired. Please reconnect.", finishedAt: new Date() }
+        data: { status: "FAILED", error: "Connection expired.", finishedAt: new Date() }
       });
       return new NextResponse("Refresh Failed", { status: 200 });
     }
   }
 
   try {
+    // Initialize Client with User Access Token
+    const client = new TwitterApi(accessToken);
+
     // ============================================================
     // 📸 MEDIA UPLOAD LOGIC
     // ============================================================
@@ -518,14 +529,15 @@ async function handler(req: Request) {
       console.log(`📸 Uploading ${task.mediaUrls.length} images...`);
       
       for (const url of task.mediaUrls) {
-        // We use a try/catch inside the loop so one bad image doesn't crash the whole worker immediately
-        try {
-            const mediaId = await uploadMediaToTwitter(url, accessToken);
-            if (mediaId) mediaIds.push(mediaId);
-        } catch (uploadError) {
-            console.error(`Failed to upload image ${url}:`, uploadError);
-            throw new Error("Failed to upload media to Twitter");
-        }
+        // Download Image
+        const imgRes = await fetch(url);
+        if (!imgRes.ok) throw new Error("Failed to download image");
+        const arrayBuffer = await imgRes.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        // Upload using Library (Handles V1.1 internals automatically)
+        const mediaId = await client.v1.uploadMedia(buffer, { mimeType: 'image/jpeg' });
+        mediaIds.push(mediaId);
       }
     }
 
@@ -537,20 +549,8 @@ async function handler(req: Request) {
       payload.media = { media_ids: mediaIds };
     }
 
-    const response = await fetch("https://api.twitter.com/2/tweets", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      const errData = await response.json();
-      console.error("Twitter API Error:", errData);
-      throw new Error(JSON.stringify(errData));
-    }
+    // Post using Library (V2 API)
+    await client.v2.tweet(payload);
 
     // Success
     await prisma.$transaction([
@@ -572,98 +572,11 @@ async function handler(req: Request) {
       where: { id: execution.id },
       data: { status: "FAILED", error: error.message || "Unknown Error", finishedAt: new Date() },
     });
-    // Mark parent task failed
-    await prisma.task.update({
-        where: { id: taskId },
-        data: { status: "FAILED" }
-    });
+    // Mark task failed
+    await prisma.task.update({ where: { id: taskId }, data: { status: "FAILED" } });
+    
     return new NextResponse("Worker Failed", { status: 200 });
   }
-}
-
-// --- HELPER 1: Refresh Token ---
-async function refreshTwitterToken(refreshToken: string) {
-  const url = "https://api.twitter.com/2/oauth2/token";
-  const basicAuth = Buffer.from(
-    `${process.env.TWITTER_CLIENT_ID}:${process.env.TWITTER_CLIENT_SECRET}`
-  ).toString("base64");
-
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Authorization: `Basic ${basicAuth}`,
-    },
-    body: new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token: refreshToken,
-    }),
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Twitter Refresh Error: ${text}`);
-  }
-  return await res.json();
-}
-
-// --- HELPER 2: Upload Media (V1.1) ---
-// --- HELPER 2: Upload Media (V1.1) - FIXED & DEBUGGED ---
-async function uploadMediaToTwitter(imageUrl: string, accessToken: string) {
-  console.log(`⬇️ Downloading image: ${imageUrl}`);
-  
-  // 1. Download the image
-  const imgRes = await fetch(imageUrl);
-  if (!imgRes.ok) throw new Error(`Failed to download image from storage: ${imgRes.statusText}`);
-  
-  const arrayBuffer = await imgRes.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-
-  if (buffer.length === 0) {
-    throw new Error("Downloaded image is empty (0 bytes). Check the URL.");
-  }
-  
-  console.log(`📦 Image downloaded: ${buffer.length} bytes. Uploading to Twitter...`);
-
-  // 2. Prepare FormData
-  const formData = new FormData();
-  // Using 'image/jpeg' as default, but ideally detecting from URL is better
-  const blob = new Blob([buffer], { type: "image/jpeg" }); 
-  formData.append("media", blob, "upload.jpg"); 
-
-  // 3. Upload to Twitter V1.1
-  const uploadRes = await fetch("https://upload.twitter.com/1.1/media/upload.json", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      // Note: Do NOT set Content-Type here; fetch sets the boundary automatically
-    },
-    body: formData,
-  });
-
-  // 🛑 FIX: Read text first to avoid "Unexpected end of JSON" crash
-  const responseText = await uploadRes.text();
-
-  if (!uploadRes.ok) {
-    console.error("❌ Twitter Upload Failed. Raw Response:", responseText);
-    
-    // Common error handling
-    if (uploadRes.status === 401 || uploadRes.status === 403) {
-      throw new Error("Twitter Auth Error: Media upload refused. (OAuth 2.0 scope issue?)");
-    }
-    
-    throw new Error(`Twitter Upload Error: ${responseText}`);
-  }
-
-  // Parse JSON only if successful and not empty
-  if (!responseText) {
-    throw new Error("Twitter returned an empty response.");
-  }
-
-  const data = JSON.parse(responseText);
-  console.log("✅ Media Uploaded! ID:", data.media_id_string);
-
-  return data.media_id_string;
 }
 
 export const POST = verifySignatureAppRouter(handler);
